@@ -41,6 +41,7 @@ p{margin:0}
 .heldin{position:relative;z-index:1;max-width:1180px;margin:0 auto;display:grid;gap:18px}
 .kop{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px 32px}
 .kop p{max-width:62ch;color:#e4f1f9}
+.kop .update{font-size:.9rem;margin-top:4px}
 .feiten{display:flex;gap:10px;flex-wrap:wrap}
 .feit{background:rgba(6,30,48,.55);padding:8px 12px;border-radius:4px;min-width:96px}
 .feit b{display:block;font:700 2rem/1 var(--kop)}
@@ -121,6 +122,7 @@ li+li{margin-top:4px}
       <div>
         <h1>Sneeuwmonitor week 5</h1>
         <p>Welk off-piste gebied in de Alpen is het beste voor 31 januari tot 5 februari? Stand van <span id="datum">...</span>.</p>
+        <p class="update" id="update"></p>
       </div>
       <div class="feiten">
         <div class="feit"><b id="dagen">-</b><span>dagen tot vertrek</span></div>
@@ -354,6 +356,13 @@ function start(d,code){
   gadget(d,null);laadMedia(code).then(m=>{if(m)gadget(d,m)});
   G=d.gebieden;G.forEach((g,i)=>rang[g.id]=i+1);
   $("datum").textContent=dag(d.datum)+" "+d.datum.slice(0,4);
+  if(d.bijgewerkt){
+    const tz={timeZone:"Europe/Amsterdam"},b=new Date(d.bijgewerkt);
+    const f=x=>x.toLocaleString("nl-NL",{...tz,weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+    const ams=new Date(b.toLocaleString("en-US",tz)),volgende=new Date(b.getTime()+(24*60-(ams.getHours()*60+ams.getMinutes())+9*60+3)*6e4);
+    if(ams.getHours()*60+ams.getMinutes()<9*60+3)volgende.setTime(volgende.getTime()-864e5);
+    $("update").textContent=`Laatst bijgewerkt: ${f(b)} · volgende update gepland: ${f(volgende)}`;
+  }
   const nu=new Date(d.datum+"T12:00:00Z"),tot=x=>Math.max(0,Math.round((new Date(x+"T12:00:00Z")-nu)/864e5));
   $("dagen").textContent=tot(d.vertrek);$("keuze").textContent=tot("2027-01-28");$("aantal").textContent=G.length;
   const metB=G.some(g=>g.berichten),metK=G.some(g=>g.ke!=null),metW=G.some(g=>g.som!=null);
